@@ -6,6 +6,14 @@ The Excel Plotter Chatbot is an innovative application that combines natural lan
 
 ## Images
 
+### Home page
+![Home page](https://github.com/Transcendental-Programmer/LLM-Integrated-Excel-Plotter-App/blob/main/static/images/home.png.png)
+
+### Sample Query
+![Sample Query](https://github.com/Transcendental-Programmer/LLM-Integrated-Excel-Plotter-App/blob/main/static/images/sample-query.png)
+
+### Result
+![Result](https://github.com/Transcendental-Programmer/LLM-Integrated-Excel-Plotter-App/blob/main/static/images/result.png)
 
 ## Features
 
