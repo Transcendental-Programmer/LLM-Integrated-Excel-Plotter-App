@@ -135,7 +135,7 @@ The API should now be running on `http://localhost:5000`.
    ```
    npm start
    ```
-Interact with the app opened on http://localhost:8080
+Interact with the app opened on `http://localhost:8080`
 
 ## Contributing
 
