@@ -144,6 +144,3 @@ Contributions to improve the Excel Plotter Chatbot are welcome. Please feel free
 ## License
 
 [MIT License](LICENSE)
-```
-
-This README provides a comprehensive overview of your project, including its description, features, technical details, setup instructions, and usage guidelines. You may want to adjust some details based on your specific implementation or add any additional information that you think would be helpful for users or contributors.
