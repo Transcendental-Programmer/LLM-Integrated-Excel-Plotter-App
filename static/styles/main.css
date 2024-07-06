@@ -1,0 +1,26 @@
+body {
+    font-family: Arial, sans-serif;
+}
+
+h1 {
+    text-align: center;
+}
+
+div {
+    margin: 20px;
+}
+
+input {
+    padding: 10px;
+    width: 80%;
+    margin-right: 10px;
+}
+
+button {
+    padding: 10px;
+}
+
+img {
+    display: block;
+    margin: 20px auto;
+}
