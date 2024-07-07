@@ -114,7 +114,7 @@ cd LLM-Integrated-Excel-Plotter-App
    ```
 6. Run the backend server:
    ```
-   python backend/app.py
+   python app.py
    ```
 
 The API should now be running on `http://localhost:5000`.
