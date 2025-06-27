@@ -5,9 +5,12 @@ import logging
 import time
 
 class ChartGenerator:
-    def __init__(self):
+    def __init__(self, data=None):
         logging.info("Initializing ChartGenerator")
-        self.data = pd.read_excel('../data/sample_data.xlsx')
+        if data is not None:
+            self.data = data
+        else:
+            self.data = pd.read_excel(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data', 'sample_data.xlsx'))
 
     def generate_chart(self, plot_args):
         start_time = time.time()
@@ -16,7 +19,10 @@ class ChartGenerator:
         fig, ax = plt.subplots()
         for y in plot_args['y']:
             color = plot_args.get('color', None)
-            ax.plot(self.data[plot_args['x']], self.data[y], label=y, color=color)
+            if plot_args.get('chart_type', 'line') == 'bar':
+                ax.bar(self.data[plot_args['x']], self.data[y], label=y, color=color)
+            else:
+                ax.plot(self.data[plot_args['x']], self.data[y], label=y, color=color)
         
         ax.set_xlabel(plot_args['x'])
         ax.legend()
