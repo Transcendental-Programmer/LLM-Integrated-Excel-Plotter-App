@@ -12,11 +12,13 @@ body {
     border-radius: 18px;
     box-shadow: 0 4px 24px rgba(0,0,0,0.08);
     padding: 32px 40px 40px 40px;
+    animation: fadeIn 0.8s ease;
 }
 
 .header {
     text-align: center;
     margin-bottom: 32px;
+    animation: slideInDown 1s ease;
 }
 
 h1 {
@@ -31,6 +33,12 @@ h1 {
     box-shadow: 0 2px 8px rgba(42,59,143,0.04);
     padding: 24px 28px;
     margin-bottom: 28px;
+    transition: all 0.3s ease;
+}
+
+.section-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(42,59,143,0.08);
 }
 
 input[type="file"], input[type="text"] {
@@ -40,6 +48,13 @@ input[type="file"], input[type="text"] {
     font-size: 1rem;
     margin-right: 10px;
     background: #fff;
+    transition: all 0.3s ease;
+}
+
+input[type="file"]:focus, input[type="text"]:focus {
+    outline: none;
+    border-color: #4f8cff;
+    box-shadow: 0 0 0 3px rgba(79, 140, 255, 0.1);
 }
 
 button {
@@ -50,10 +65,19 @@ button {
     padding: 9px 22px;
     font-size: 1rem;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: all 0.3s ease;
 }
-button:hover {
+
+button:hover:not(:disabled) {
     background: linear-gradient(90deg, #1d265c 60%, #3576e0 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
 }
 
 ul {
@@ -65,14 +89,20 @@ ul {
     border-collapse: collapse;
     margin-top: 10px;
     background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
+
 .preview-table th, .preview-table td {
     border: 1px solid #e0e6f0;
     padding: 6px 10px;
     text-align: left;
 }
+
 .preview-table th {
     background: #eaf0fb;
+    font-weight: 600;
 }
 
 .response-box {
@@ -82,6 +112,7 @@ ul {
     margin-top: 12px;
     color: #2a3b8f;
     font-size: 1.1rem;
+    animation: slideInUp 0.5s ease;
 }
 
 img {
@@ -90,13 +121,122 @@ img {
     box-shadow: 0 2px 12px rgba(42,59,143,0.08);
     max-width: 100%;
     background: #fff;
+    transition: all 0.3s ease;
 }
 
+img:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 20px rgba(42,59,143,0.15);
+}
+
+/* Global Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+@keyframes zoomIn {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Loading animation for progress bars */
+.progress-bar {
+    width: 100%;
+    height: 4px;
+    background-color: #f0f0f0;
+    border-radius: 2px;
+    overflow: hidden;
+    margin: 10px 0;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4f8cff, #2a3b8f);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+    animation: pulse 1.5s infinite;
+}
+
+/* Responsive Design */
 @media (max-width: 600px) {
     .app-container {
-        padding: 10px;
+        padding: 20px;
+        margin: 20px;
     }
+    
     .section-card {
-        padding: 10px;
+        padding: 16px;
+    }
+    
+    h1 {
+        font-size: 2rem;
+    }
+    
+    .header {
+        margin-bottom: 24px;
     }
 }
