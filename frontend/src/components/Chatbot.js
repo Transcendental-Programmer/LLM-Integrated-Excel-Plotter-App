@@ -25,12 +25,22 @@ const SAMPLE_QUERIES = [
   "display the annual net profit with a blue bar"
 ];
 
+// Sample data that matches the training data structure
+const SAMPLE_DATA = [
+  { Year: 'FY12', Sales: 1000, 'Employee expense': 10, EBITDA: 900, EBIT: 800, 'Net profit': 650, RoCE: 0.27, interest: 90, 'WC %': 0.1 },
+  { Year: 'FY13', Sales: 1100, 'Employee expense': 30, EBITDA: 600, EBIT: 300, 'Net profit': 150, RoCE: 0.09, interest: 87, 'WC %': 0.09 },
+  { Year: 'FY14', Sales: 1210, 'Employee expense': 490, EBITDA: 800, EBIT: 750, 'Net profit': 600, RoCE: 0.21, interest: 80, 'WC %': 0.08 },
+  { Year: 'FY15', Sales: 1331, 'Employee expense': 90, EBITDA: 1100, EBIT: 1000, 'Net profit': 850, RoCE: 0.25, interest: 23, 'WC %': 0.07 },
+  { Year: 'FY16', Sales: 1464.1, 'Employee expense': 89, EBITDA: 1200, EBIT: 1000, 'Net profit': 850, RoCE: 0.23, interest: 4, 'WC %': 0.06 }
+];
+
 const Chatbot = ({ setChartPath, uploadedFilePath }) => {
   const [input, setInput] = useState('');
   const [response, setResponse] = useState('');
   const [model, setModel] = useState('bart');
   const [loading, setLoading] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
+  const [usingSampleData, setUsingSampleData] = useState(false);
 
   const handleInputChange = (e) => {
     setInput(e.target.value);
@@ -47,13 +57,38 @@ const Chatbot = ({ setChartPath, uploadedFilePath }) => {
 
   const handleUseSampleData = async () => {
     setLoading(true);
+    setUsingSampleData(true);
     try {
-      // Use the sample data path
-      const sampleDataPath = '/home/user/app/../data/sample_data.csv';
+      // Convert sample data to CSV format
+      const csvContent = [
+        'Year,Sales,Employee expense,EBITDA,EBIT,Net profit,RoCE,interest,WC %',
+        ...SAMPLE_DATA.map(row => 
+          `${row.Year},${row.Sales},${row['Employee expense']},${row.EBITDA},${row.EBIT},${row['Net profit']},${row.RoCE},${row.interest},${row['WC %']}`
+        )
+      ].join('\n');
+
+      // Create a File object from the CSV content
+      const sampleFile = new File([csvContent], 'sample_data.csv', { type: 'text/csv' });
+      
+      // First upload the sample data
+      const formData = new FormData();
+      formData.append('file', sampleFile);
+      
+      console.log('Uploading sample data...');
+      
+      const uploadUrl = 'https://archcoder-llm-excel-plotter-agent.hf.space/upload';
+      const uploadResult = await axios.post(uploadUrl, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 30000
+      });
+      
+      console.log('Sample data uploaded:', uploadResult.data);
+      
+      // Now use the uploaded file for the query
       const payload = { 
-        query: "plot the sales for year FY12 with a red line", 
+        query: "plot the sales in the years with red line", 
         model,
-        file_path: sampleDataPath
+        file_path: uploadResult.data.file_path
       };
       
       console.log('Using sample data with payload:', payload);
@@ -74,6 +109,7 @@ const Chatbot = ({ setChartPath, uploadedFilePath }) => {
     } catch (error) {
       console.error('Error using sample data:', error);
       setResponse(`Error: ${error.response?.data?.error || error.message || 'Unable to use sample data'}`);
+      setUsingSampleData(false);
     } finally {
       setLoading(false);
     }
@@ -212,53 +248,81 @@ const Chatbot = ({ setChartPath, uploadedFilePath }) => {
               ))}
             </div>
             
-            {/* Sample Data Option */}
+            {/* Sample Data Option - Enhanced */}
             <div style={{
               display: 'flex',
               alignItems: 'center',
               gap: '12px',
-              padding: '12px',
+              padding: '16px',
               backgroundColor: '#f0f8ff',
-              borderRadius: '6px',
-              border: '1px solid #4f8cff'
+              borderRadius: '8px',
+              border: '2px solid #4f8cff',
+              position: 'relative',
+              overflow: 'hidden'
             }}>
-              <div style={{fontSize: '1.2em'}}>📊</div>
+              <div style={{
+                position: 'absolute',
+                top: '0',
+                left: '0',
+                right: '0',
+                height: '3px',
+                background: 'linear-gradient(90deg, #4f8cff, #2a3b8f, #4f8cff)',
+                animation: 'shimmer 2s infinite'
+              }} />
+              <div style={{fontSize: '1.5em'}}>🚀</div>
               <div style={{flex: 1}}>
-                <div style={{fontWeight: '500', color: '#2a3b8f', marginBottom: '4px'}}>
-                  Try with Sample Data
+                <div style={{fontWeight: '600', color: '#2a3b8f', marginBottom: '4px', fontSize: '1.1em'}}>
+                  🎯 Recommended: Try with Sample Data First!
                 </div>
-                <div style={{fontSize: '0.9em', color: '#666'}}>
-                  Use our sample financial data to test the system
+                <div style={{fontSize: '0.9em', color: '#666', lineHeight: '1.4'}}>
+                  <strong>Why?</strong> Our sample data is perfectly matched with our training data, ensuring the best results. 
+                  It contains all the financial metrics (Sales, EBITDA, EBIT, etc.) that our AI model knows how to visualize.
                 </div>
               </div>
               <button
                 onClick={handleUseSampleData}
                 disabled={loading}
                 style={{
-                  background: '#2a8f4f',
+                  background: 'linear-gradient(135deg, #2a8f4f, #1f6b3a)',
                   color: 'white',
                   border: 'none',
-                  padding: '8px 16px',
-                  borderRadius: '6px',
+                  padding: '12px 20px',
+                  borderRadius: '8px',
                   cursor: loading ? 'not-allowed' : 'pointer',
-                  fontSize: '0.9em',
+                  fontSize: '1em',
+                  fontWeight: '600',
                   transition: 'all 0.3s ease',
-                  opacity: loading ? 0.6 : 1
+                  opacity: loading ? 0.6 : 1,
+                  boxShadow: '0 4px 8px rgba(42, 143, 79, 0.3)'
                 }}
                 onMouseOver={(e) => {
                   if (!loading) {
-                    e.target.style.backgroundColor = '#1f6b3a';
-                    e.target.style.transform = 'translateY(-1px)';
+                    e.target.style.transform = 'translateY(-2px)';
+                    e.target.style.boxShadow = '0 6px 12px rgba(42, 143, 79, 0.4)';
                   }
                 }}
                 onMouseOut={(e) => {
                   if (!loading) {
-                    e.target.style.backgroundColor = '#2a8f4f';
                     e.target.style.transform = 'translateY(0)';
+                    e.target.style.boxShadow = '0 4px 8px rgba(42, 143, 79, 0.3)';
                   }
                 }}
               >
-                {loading ? 'Loading...' : 'Use Sample Data'}
+                {loading ? (
+                  <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                    <div style={{
+                      width: '16px',
+                      height: '16px',
+                      border: '2px solid #ffffff40',
+                      borderTop: '2px solid white',
+                      borderRadius: '50%',
+                      animation: 'spin 1s linear infinite'
+                    }} />
+                    Loading...
+                  </div>
+                ) : (
+                  '🚀 Use Sample Data'
+                )}
               </button>
             </div>
           </div>
@@ -405,6 +469,22 @@ const Chatbot = ({ setChartPath, uploadedFilePath }) => {
         </div>
       )}
       
+      {/* Sample data indicator */}
+      {usingSampleData && (
+        <div style={{
+          fontSize:'0.9em',
+          color:'#2a8f4f',
+          marginTop:10,
+          padding: '8px 12px',
+          backgroundColor: '#e8f5e8',
+          borderRadius: '6px',
+          border: '1px solid #2a8f4f',
+          animation: 'fadeIn 0.5s ease'
+        }}>
+          🚀 Using sample data for queries.
+        </div>
+      )}
+      
       <style jsx>{`
         @keyframes fadeInUp {
           from {
@@ -451,6 +531,11 @@ const Chatbot = ({ setChartPath, uploadedFilePath }) => {
           to {
             opacity: 1;
           }
+        }
+        
+        @keyframes shimmer {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
         }
       `}</style>
     </div>
