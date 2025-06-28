@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 const MODEL_OPTIONS = [
@@ -41,6 +41,7 @@ const Chatbot = ({ setChartPath, uploadedFilePath }) => {
   const [loading, setLoading] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
   const [usingSampleData, setUsingSampleData] = useState(false);
+  const [chartPolling, setChartPolling] = useState(false);
 
   const handleInputChange = (e) => {
     setInput(e.target.value);
@@ -54,6 +55,69 @@ const Chatbot = ({ setChartPath, uploadedFilePath }) => {
     setInput(query);
     setShowInstructions(false);
   };
+
+  // Function to check if chart image is available
+  const checkChartAvailability = async (chartPath) => {
+    try {
+      const backendUrl = 'https://archcoder-llm-excel-plotter-agent.hf.space';
+      const response = await fetch(`${backendUrl}/${chartPath}?t=${Date.now()}`, {
+        method: 'HEAD',
+        mode: 'no-cors'
+      });
+      return true;
+    } catch (error) {
+      console.log('Chart not yet available, retrying...');
+      return false;
+    }
+  };
+
+  // Polling mechanism for chart availability
+  useEffect(() => {
+    let pollInterval;
+    
+    if (chartPolling && response && response.includes('chart_path')) {
+      // Extract chart path from response if it's a string
+      let currentChartPath = '';
+      try {
+        if (typeof response === 'string' && response.includes('chart_path')) {
+          // Try to parse the response as JSON
+          const parsedResponse = JSON.parse(response);
+          currentChartPath = parsedResponse.chart_path || '';
+        }
+      } catch (e) {
+        // If parsing fails, the response might be the chart path directly
+        currentChartPath = response;
+      }
+
+      if (currentChartPath) {
+        console.log('Starting chart polling for:', currentChartPath);
+        pollInterval = setInterval(async () => {
+          const isAvailable = await checkChartAvailability(currentChartPath);
+          if (isAvailable) {
+            console.log('Chart is now available!');
+            setChartPath(currentChartPath);
+            setChartPolling(false);
+            clearInterval(pollInterval);
+          }
+        }, 2000); // Check every 2 seconds
+
+        // Stop polling after 30 seconds
+        setTimeout(() => {
+          if (pollInterval) {
+            console.log('Chart polling timeout');
+            setChartPolling(false);
+            clearInterval(pollInterval);
+          }
+        }, 30000);
+      }
+    }
+
+    return () => {
+      if (pollInterval) {
+        clearInterval(pollInterval);
+      }
+    };
+  }, [chartPolling, response, setChartPath]);
 
   const handleUseSampleData = async () => {
     setLoading(true);
@@ -104,7 +168,13 @@ const Chatbot = ({ setChartPath, uploadedFilePath }) => {
       console.log('Backend response:', result.data);
       
       setResponse(result.data.response);
-      setChartPath(result.data.chart_path);
+      
+      // Start polling for chart availability
+      if (result.data.chart_path) {
+        setChartPolling(true);
+        // Also set the chart path immediately in case it's already available
+        setChartPath(result.data.chart_path);
+      }
       
     } catch (error) {
       console.error('Error using sample data:', error);
@@ -138,7 +208,13 @@ const Chatbot = ({ setChartPath, uploadedFilePath }) => {
       console.log('Backend response:', result.data);
       
       setResponse(result.data.response);
-      setChartPath(result.data.chart_path);
+      
+      // Start polling for chart availability
+      if (result.data.chart_path) {
+        setChartPolling(true);
+        // Also set the chart path immediately in case it's already available
+        setChartPath(result.data.chart_path);
+      }
       
       // Log the chart path for debugging
       console.log('Chart path set to:', result.data.chart_path);
@@ -450,6 +526,16 @@ const Chatbot = ({ setChartPath, uploadedFilePath }) => {
           }}>
             {response}
           </div>
+          {chartPolling && (
+            <div style={{
+              marginTop: '8px',
+              fontSize: '0.9em',
+              color: '#4f8cff',
+              fontStyle: 'italic'
+            }}>
+              🔄 Checking for chart availability...
+            </div>
+          )}
         </div>
       )}
       

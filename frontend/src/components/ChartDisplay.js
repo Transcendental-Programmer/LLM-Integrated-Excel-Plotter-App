@@ -4,28 +4,54 @@ const ChartDisplay = ({ chartPath }) => {
     const [imageError, setImageError] = useState(false);
     const [imageLoading, setImageLoading] = useState(false);
     const [imageLoaded, setImageLoaded] = useState(false);
+    const [retryCount, setRetryCount] = useState(0);
 
     // Use the Hugging Face Space URL for production
     const backendUrl = 'https://archcoder-llm-excel-plotter-agent.hf.space';
     
     const handleImageLoad = () => {
+        console.log('Image loaded successfully');
         setImageLoading(false);
         setImageError(false);
         setImageLoaded(true);
     };
 
     const handleImageError = () => {
+        console.log('Image failed to load, retry count:', retryCount);
         setImageLoading(false);
         setImageError(true);
-        setImageLoaded(false);
-        console.log('Failed to load chart image from:', `${backendUrl}/${chartPath}`);
+        console.error('Failed to load chart image from:', `${backendUrl}/${chartPath}`);
+    };
+
+    const retryLoadImage = () => {
+        setImageError(false);
+        setImageLoading(true);
+        setRetryCount(prev => prev + 1);
+        
+        // Force reload the image with cache busting
+        const img = new Image();
+        img.onload = handleImageLoad;
+        img.onerror = handleImageError;
+        img.src = `${backendUrl}/${chartPath}?t=${Date.now()}&retry=${retryCount + 1}`;
     };
 
     useEffect(() => {
         if (chartPath) {
+            console.log('Chart path changed to:', chartPath);
             setImageLoading(true);
             setImageError(false);
             setImageLoaded(false);
+            setRetryCount(0);
+            
+            // Add a small delay to ensure the backend has time to generate the image
+            const timer = setTimeout(() => {
+                const img = new Image();
+                img.onload = handleImageLoad;
+                img.onerror = handleImageError;
+                img.src = `${backendUrl}/${chartPath}?t=${Date.now()}`;
+            }, 1000); // 1 second delay
+            
+            return () => clearTimeout(timer);
         }
     }, [chartPath]);
 
@@ -73,6 +99,13 @@ const ChartDisplay = ({ chartPath }) => {
                             }}>
                                 Generating your chart...
                             </div>
+                            <div style={{
+                                fontSize: '0.9em',
+                                color: '#666',
+                                marginTop: '10px'
+                            }}>
+                                This may take a few seconds
+                            </div>
                         </div>
                     )}
                     
@@ -87,17 +120,12 @@ const ChartDisplay = ({ chartPath }) => {
                             animation: 'shake 0.5s ease'
                         }}>
                             <div style={{fontSize: '1.2em', marginBottom: '10px'}}>⚠️</div>
-                            <div>Failed to load chart. Please try again.</div>
+                            <div>Failed to load chart. The chart may still be generating.</div>
+                            <div style={{fontSize: '0.9em', marginTop: '8px', color: '#666'}}>
+                                Retry count: {retryCount}
+                            </div>
                             <button 
-                                onClick={() => {
-                                    setImageError(false);
-                                    setImageLoading(true);
-                                    // Force reload the image
-                                    const img = new Image();
-                                    img.onload = handleImageLoad;
-                                    img.onerror = handleImageError;
-                                    img.src = `${backendUrl}/${chartPath}?t=${Date.now()}`;
-                                }}
+                                onClick={retryLoadImage}
                                 style={{
                                     marginTop: '10px',
                                     padding: '8px 16px',
@@ -111,7 +139,7 @@ const ChartDisplay = ({ chartPath }) => {
                                 onMouseOver={(e) => e.target.style.backgroundColor = '#3a7bd5'}
                                 onMouseOut={(e) => e.target.style.backgroundColor = '#4f8cff'}
                             >
-                                Retry
+                                Retry Loading
                             </button>
                         </div>
                     )}
@@ -124,7 +152,7 @@ const ChartDisplay = ({ chartPath }) => {
                             transition: 'transform 0.3s ease'
                         }}>
                             <img 
-                                src={`${backendUrl}/${chartPath}`} 
+                                src={`${backendUrl}/${chartPath}?t=${Date.now()}`} 
                                 alt="Generated Chart" 
                                 onLoad={handleImageLoad}
                                 onError={handleImageError}
@@ -145,6 +173,20 @@ const ChartDisplay = ({ chartPath }) => {
                                     e.target.style.boxShadow = '0 8px 16px rgba(0,0,0,0.1)';
                                 }}
                             />
+                        </div>
+                    )}
+                    
+                    {/* Debug Info */}
+                    {process.env.NODE_ENV === 'development' && (
+                        <div style={{
+                            marginTop: '10px',
+                            padding: '8px',
+                            backgroundColor: '#f0f0f0',
+                            borderRadius: '4px',
+                            fontSize: '0.8em',
+                            color: '#666'
+                        }}>
+                            Debug: Chart Path: {chartPath} | Loading: {imageLoading.toString()} | Error: {imageError.toString()} | Loaded: {imageLoaded.toString()}
                         </div>
                     )}
                 </div>
